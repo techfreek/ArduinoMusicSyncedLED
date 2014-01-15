@@ -106,9 +106,6 @@ void loop () {
     }
 }
 
-
-
-//Add a for loop so animation is smoother http://www.arduino.cc/en/Reference/For (this is all the basic code that the anaylzer needs)
 boolean readSpectrum(int musicIntensity[6], int audioCutoff) 
 {
   // Band 0 = Lowest Frequencies.
@@ -125,8 +122,13 @@ boolean readSpectrum(int musicIntensity[6], int audioCutoff)
     SpectrumLeft[Band] = tempL; 
     SpectrumRight[Band] = tempR;
     
-    tempIntensity = (15.968 - ((tempL+tempR)/128.68));
-    musicIntensity[Band] = /*((tempL+tempR)/8);*/ square(tempIntensity);
+    /*This next portion takes the raw data from spectrum, and converts it to something that can be displayed. 
+    Some data that should be mentioned, to get a good look, I square the input value. However the power values are inverted
+    on the light strips. AKA 0 is full on, and 255 is off. To sum up, 16^2 is 256; the max value of tempL + tempR is 2048
+    and 2048/126.68 is slightly greater than 16. This is okay because it is unlikely that both frequences will be capped out
+    at any one time. */
+    tempIntensity = (16 - ((tempL+tempR)/126.68));
+    musicIntensity[Band] = square(tempIntensity); /*((tempL+tempR)/8);*/
     readSum += musicIntensity[Band];
     
     digitalWrite(spectrumStrobe,HIGH);
