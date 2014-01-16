@@ -55,7 +55,7 @@ void loop () {
         notPlaying = 0; 
       }
       
-      if(notPlaying < 100 || playing)
+      if(notPlaying < 600 || playing)
       {
         if(prevMode == -1) //-1 means it came from the starting loop.
         {
