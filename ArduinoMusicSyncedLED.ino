@@ -1,11 +1,9 @@
 #include <math.h>
-int SpectrumLeft[7]; //Sets up the 6 frequencies I am analyzing
-int SpectrumRight[7]; //Sets up the 6 frequencies I am analyzing
 int leds[6] = {3, 5, 6, 9, 10, 11};
 int rotateSpeed = 10;
 int sumOld = 0;
 int sumNew = 0;
-int audioCutoff = 15;
+int audioCutoff = 0;
 int loops = 0;
 boolean rotateOverride = false;
 boolean music = false;
@@ -55,6 +53,10 @@ void loop () {
         notPlaying = 0; 
       }
       
+      Serial.print("NP: ");
+      Serial.print(notPlaying);
+      Serial.print("\n");
+      
       if(notPlaying < 600 || playing)
       {
         if(prevMode == -1) //-1 means it came from the starting loop.
@@ -69,10 +71,7 @@ void loop () {
         
         music = true;
         
-        if(notPlaying > 30)
-          audioCutoff = 20;
-        else
-          audioCutoff = 5;
+        audioCutoff = 0;
       }
       else
       {            
@@ -92,14 +91,7 @@ void loop () {
         
         rotateMode = rotate(rotIntensity, rotateMode);  
         
-        if(rotateMode == 0)
-        {
-          audioCutoff = 60;
-        }
-        else
-        {
-          audioCutoff = 45; 
-        }
+        audioCutoff = 0;
       }
       
       ledWrite(musicIntensity, rotIntensity, music);
@@ -116,20 +108,22 @@ boolean readSpectrum(int musicIntensity[6], int audioCutoff)
   for(byte Band = 0; Band < 7 ; Band++){
     int tempL = analogRead(0);
     int tempR = analogRead(1);
-    int tempSum = tempL + tempR;
     double tempIntensity = 0;    
     
-    SpectrumLeft[Band] = tempL; 
-    SpectrumRight[Band] = tempR;
+    Serial.print("L/R: ");
+    Serial.print(tempL);
+    Serial.print(", ");
+    Serial.print(tempR);
+    Serial.print("\n");
     
     /*This next portion takes the raw data from spectrum, and converts it to something that can be displayed. 
     Some data that should be mentioned, to get a good look, I square the input value. However the power values are inverted
     on the light strips. AKA 0 is full on, and 255 is off. To sum up, 16^2 is 256; the max value of tempL + tempR is 2048
     and 2048/126.68 is slightly greater than 16. This is okay because it is unlikely that both frequences will be capped out
     at any one time. */
-    tempIntensity = (16 - ((tempL+tempR)/126.68));
+    tempIntensity = (16 - ((tempL+tempR)/128));
     musicIntensity[Band] = square(tempIntensity); /*((tempL+tempR)/8);*/
-    readSum += musicIntensity[Band];
+    readSum += (tempL + tempR);
     
     digitalWrite(spectrumStrobe,HIGH);
     digitalWrite(spectrumStrobe,LOW);     
@@ -161,11 +155,11 @@ void ledWrite(int musicIntensity[6], int rotIntensity[6], boolean music)
 boolean isPlaying2(int avg)
 {
   boolean playing = false;
-  int tempAvg = 255 - avg;
-  Serial.print(tempAvg);
-  Serial.print("\n");
+  //int tempAvg = 255 - avg;
+  //Serial.print(tempAvg);
+  //Serial.print("\n");
   
-  if(tempAvg > audioCutoff)
+  if(avg > audioCutoff)
   {
      playing = true; 
   }
